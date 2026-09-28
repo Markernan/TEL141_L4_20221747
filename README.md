@@ -41,5 +41,3 @@ ssh ubuntu@server1 'bash -s' vm1 br-int 100 5901 < create_vm.sh
 ```
 
 
-# TEL141_L4_20221747
-# TEL141_L4_20221747
