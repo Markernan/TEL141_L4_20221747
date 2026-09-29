@@ -1,0 +1,70 @@
+=== EJECUCION DE ./deploy_activity2.sh (desde Server 4) ===
+$ ssh ubuntu@10.20.11.215 -p 5804
+ubuntu@server4:~/scripts$ ./deploy_activity2.sh
+
+== [1/6] Inicializando master (Server 3) y workers (Server 1, Server 2) ==
+[init_master] Nodo master inicializado correctamente.
+[init_worker] Nodo worker inicializado correctamente.
+[init_worker] Nodo worker inicializado correctamente.
+
+== [2/6] Creando VLAN 100 y VLAN 200 SIN DHCP en Server 3 ==
+[create_network_vlan] Creando gateway 'gw_vlan100' (VLAN 100, IP 192.168.0.1/24)...
+[create_network_vlan] DHCP deshabilitado para esta VLAN, no se crea namespace.
+[create_network_vlan] Red VLAN 100 (192.168.0.0/24) creada correctamente.
+[create_network_vlan] Creando gateway 'gw_vlan200' (VLAN 200, IP 192.168.2.1/24)...
+[create_network_vlan] DHCP deshabilitado para esta VLAN, no se crea namespace.
+[create_network_vlan] Red VLAN 200 (192.168.2.0/24) creada correctamente.
+
+== [3/6] Habilitando salida a Internet para ambas VLANs ==
+[internet_to_network] Habilitando NAT para VLAN 100 (192.168.0.0/24) por 'ens3'...
+[internet_to_network] Autorizando FORWARD de 'gw_vlan100' hacia 'ens3'...
+[internet_to_network] Habilitando NAT para VLAN 200 (192.168.2.0/24) por 'ens3'...
+[internet_to_network] Autorizando FORWARD de 'gw_vlan200' hacia 'ens3'...
+
+== [4/6] Habilitando enrutamiento entre VLAN 100 y VLAN 200 ==
+[routing_networks] Autorizando FORWARD gw_vlan100 -> gw_vlan200...
+[routing_networks] Autorizando FORWARD gw_vlan200 -> gw_vlan100...
+[routing_networks] Enrutamiento habilitado entre VLAN 100 y VLAN 200.
+
+== [5/6] Desplegando contenedores en Server 1 con IP estatica ==
+Contenedores listos (IP estatica).
+
+== [6/6] Desplegando VMs en Server 2 ==
+[create_vm] VM 'vm_vlan100' creada: imagen=vm_vlan100.qcow2, tap=tap_vm_vlan100, vnc=5901, mac=52:54:00:5d:0c:1d
+[create_vm] VM 'vm_vlan200' creada: imagen=vm_vlan200.qcow2, tap=tap_vm_vlan200, vnc=5902, mac=52:54:00:dd:72:1c
+Recordatorio: dentro de cada VM configurar manualmente:
+  sudo ip addr add 192.168.0.20/24 dev eth0 ; sudo ip route add default via 192.168.0.1   (VM VLAN 100)
+  sudo ip addr add 192.168.2.20/24 dev eth0 ; sudo ip route add default via 192.168.2.1   (VM VLAN 200)
+
+== Actividad 2 desplegada correctamente ==
+
+
+=== VALIDACION DE CONECTIVIDAD (Server 1, contenedores) ===
+
+$ sudo docker exec container_vlan100 ip addr show veth_cont_100 | grep inet
+    inet 192.168.0.10/24 scope global veth_cont_100
+    inet6 fe80::fc22:c8ff:fec0:fb0/64 scope link
+
+$ sudo docker exec container_vlan100 ping -c2 192.168.0.1
+PING 192.168.0.1 (192.168.0.1): 56 data bytes
+64 bytes from 192.168.0.1: seq=0 ttl=64 time=4.844 ms
+64 bytes from 192.168.0.1: seq=1 ttl=64 time=0.544 ms
+--- 192.168.0.1 ping statistics ---
+2 packets transmitted, 2 packets received, 0% packet loss
+
+$ sudo docker exec container_vlan100 ping -c2 8.8.8.8
+PING 8.8.8.8 (8.8.8.8): 56 data bytes
+64 bytes from 8.8.8.8: seq=0 ttl=107 time=41.498 ms
+64 bytes from 8.8.8.8: seq=1 ttl=107 time=41.059 ms
+--- 8.8.8.8 ping statistics ---
+2 packets transmitted, 2 packets received, 0% packet loss
+
+$ sudo docker exec container_vlan100 ping -c2 192.168.2.10
+PING 192.168.2.10 (192.168.2.10): 56 data bytes
+64 bytes from 192.168.2.10: seq=0 ttl=63 time=4.331 ms
+64 bytes from 192.168.2.10: seq=1 ttl=63 time=1.122 ms
+--- 192.168.2.10 ping statistics ---
+2 packets transmitted, 2 packets received, 0% packet loss
+
+RESULTADO: IP estatica correctamente asignada (192.168.0.10/24), gateway OK,
+Internet OK y ruteo cruzado VLAN100<->VLAN200 OK. Actividad 2 validada end-to-end.

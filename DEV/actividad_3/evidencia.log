@@ -1,0 +1,58 @@
+=== EJECUCION DE ./deploy_activity3.sh (desde Server 4) ===
+$ ssh ubuntu@10.20.11.215 -p 5804
+ubuntu@server4:~/scripts$ ./deploy_activity3.sh
+
+== [1/5] Inicializando master (Server 3) y workers (Server 1, Server 2) ==
+[init_master] Creando bridge OVS 'br-int'...
+[init_master] Nodo master inicializado correctamente.
+[init_worker] Nodo worker inicializado correctamente.
+[init_worker] Nodo worker inicializado correctamente.
+
+== [2/5] Creando VLAN 100 y VLAN 200 con DHCP en Server 3 (sin Internet, sin ruteo) ==
+[create_network_vlan] Creando gateway 'gw_vlan100' (VLAN 100, IP 192.168.0.1/24)...
+[create_network_vlan] Creando namespace DHCP 'ns-dhcp-vlan100' (IP 192.168.0.2/24)...
+[create_network_vlan] Levantando dnsmasq en 'ns-dhcp-vlan100' (rango 192.168.0.11-192.168.0.15)...
+[create_network_vlan] Red VLAN 100 (192.168.0.0/24) creada correctamente.
+[create_network_vlan] Creando gateway 'gw_vlan200' (VLAN 200, IP 192.168.2.1/24)...
+[create_network_vlan] Creando namespace DHCP 'ns-dhcp-vlan200' (IP 192.168.2.2/24)...
+[create_network_vlan] Levantando dnsmasq en 'ns-dhcp-vlan200' (rango 192.168.2.11-192.168.2.15)...
+[create_network_vlan] Red VLAN 200 (192.168.2.0/24) creada correctamente.
+
+== [3/5] (Intencional) NO se llama internet_to_network.sh ni routing_networks.sh ==
+
+== [4/5] Desplegando contenedores en Server 1 (con DHCP) ==
+udhcpc: lease of 192.168.0.12 obtained from 192.168.0.2, lease time 43200
+udhcpc: lease of 192.168.2.11 obtained from 192.168.2.2, lease time 43200
+Contenedores listos.
+
+== [5/5] Desplegando VMs en Server 2 (con DHCP) ==
+[create_vm] VM 'vm_vlan100' creada: imagen=vm_vlan100.qcow2, tap=tap_vm_vlan100, vnc=5901, mac=52:54:00:5d:0c:1d
+[create_vm] VM 'vm_vlan200' creada: imagen=vm_vlan200.qcow2, tap=tap_vm_vlan200, vnc=5902, mac=52:54:00:dd:72:1c
+
+== Actividad 3 desplegada correctamente (redes aisladas, sin Internet ni ruteo) ==
+
+
+=== VALIDACION DE AISLAMIENTO (Server 1, container_vlan100) ===
+
+$ sudo docker exec container_vlan100 ping -c2 192.168.0.1
+PING 192.168.0.1 (192.168.0.1): 56 data bytes
+64 bytes from 192.168.0.1: seq=0 ttl=64 time=4.482 ms
+64 bytes from 192.168.0.1: seq=1 ttl=64 time=0.702 ms
+--- 192.168.0.1 ping statistics ---
+2 packets transmitted, 2 packets received, 0% packet loss
+(gateway alcanzable, esperado)
+
+$ sudo docker exec container_vlan100 ping -c2 -W2 8.8.8.8
+PING 8.8.8.8 (8.8.8.8): 56 data bytes
+--- 8.8.8.8 ping statistics ---
+2 packets transmitted, 0 packets received, 100% packet loss
+(sin salida a Internet, esperado)
+
+$ sudo docker exec container_vlan100 ping -c2 -W2 192.168.2.11
+PING 192.168.2.11 (192.168.2.11): 56 data bytes
+--- 192.168.2.11 ping statistics ---
+2 packets transmitted, 0 packets received, 100% packet loss
+(sin ruteo entre VLANs, esperado - redes aisladas entre si)
+
+RESULTADO: aislamiento correcto. Gateway alcanzable, Internet bloqueado,
+comunicacion entre VLAN100 y VLAN200 bloqueada. Actividad 3 validada end-to-end.
