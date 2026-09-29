@@ -1,21 +1,16 @@
-=== EJECUCION DE ./deploy_activity1.sh (desde Server 4) ===
-$ ssh ubuntu@10.20.11.215 -p 5804
-ubuntu@server4:~/scripts$ ./deploy_activity1.sh
-
 == [1/6] Inicializando master (Server 3) y workers (Server 1, Server 2) ==
-[init_master] Creando bridge OVS 'br-int'...
-[init_master] Conectando 'ens4' a 'br-int'...
+[init_master] El bridge 'br-int' ya existe, se omite creacion.
+[init_master] La interfaz 'ens4' ya esta conectada a 'br-int', se omite.
 [init_master] Activando net.ipv4.ip_forward...
 [init_master] Configurando politica por defecto de FORWARD en DROP...
-[init_master] Agregando regla de retorno ESTABLISHED,RELATED en FORWARD...
+[init_master] La regla de retorno ESTABLISHED,RELATED ya existe.
 [init_master] Nodo master inicializado correctamente.
-[init_worker] Creando bridge OVS 'br-int'...
-[init_worker] Conectando 'ens4' a 'br-int'...
+[init_worker] El bridge 'br-int' ya existe, se omite creacion.
+[init_worker] La interfaz 'ens4' ya esta conectada a 'br-int', se omite.
 [init_worker] Nodo worker inicializado correctamente.
-[init_worker] Creando bridge OVS 'br-int'...
-[init_worker] Conectando 'ens4' a 'br-int'...
+[init_worker] El bridge 'br-int' ya existe, se omite creacion.
+[init_worker] La interfaz 'ens4' ya esta conectada a 'br-int', se omite.
 [init_worker] Nodo worker inicializado correctamente.
-
 == [2/6] Creando VLAN 100 y VLAN 200 con DHCP en Server 3 ==
 [create_network_vlan] Creando gateway 'gw_vlan100' (VLAN 100, IP 192.168.0.1/24)...
 [create_network_vlan] Creando namespace DHCP 'ns-dhcp-vlan100' (IP 192.168.0.2/24)...
@@ -25,7 +20,6 @@ ubuntu@server4:~/scripts$ ./deploy_activity1.sh
 [create_network_vlan] Creando namespace DHCP 'ns-dhcp-vlan200' (IP 192.168.2.2/24)...
 [create_network_vlan] Levantando dnsmasq en 'ns-dhcp-vlan200' (rango 192.168.2.11-192.168.2.15)...
 [create_network_vlan] Red VLAN 200 (192.168.2.0/24) creada correctamente.
-
 == [3/6] Habilitando salida a Internet para ambas VLANs ==
 [internet_to_network] Habilitando NAT para VLAN 100 (192.168.0.0/24) por 'ens3'...
 [internet_to_network] Autorizando FORWARD de 'gw_vlan100' hacia 'ens3'...
@@ -33,60 +27,95 @@ ubuntu@server4:~/scripts$ ./deploy_activity1.sh
 [internet_to_network] Habilitando NAT para VLAN 200 (192.168.2.0/24) por 'ens3'...
 [internet_to_network] Autorizando FORWARD de 'gw_vlan200' hacia 'ens3'...
 [internet_to_network] Listo.
-
 == [4/6] Habilitando enrutamiento entre VLAN 100 y VLAN 200 ==
 [routing_networks] Autorizando FORWARD gw_vlan100 -> gw_vlan200...
 [routing_networks] Autorizando FORWARD gw_vlan200 -> gw_vlan100...
 [routing_networks] Enrutamiento habilitado entre VLAN 100 y VLAN 200.
-
 == [5/6] Desplegando contenedores en Server 1 (uno por VLAN, con DHCP) ==
-udhcpc: lease of 192.168.0.13 obtained from 192.168.0.2, lease time 43200
-udhcpc: lease of 192.168.2.12 obtained from 192.168.2.2, lease time 43200
+6575d511615fbddb5d87c82e1fad9cbad14c937b4c35c42dff3048d1e325ea31
+udhcpc: started, v1.37.0
+udhcpc: broadcasting discover
+udhcpc: broadcasting discover
+udhcpc: broadcasting select for 192.168.0.14, server 192.168.0.2
+udhcpc: lease of 192.168.0.14 obtained from 192.168.0.2, lease time 43200
+mv: can't rename '/etc/resolv.conf.20': Resource busy
+32e3258ccb761dd6b83ffe33389f803310bc739fa2c590401cc5fd6bee4b12db
+udhcpc: started, v1.37.0
+udhcpc: broadcasting discover
+udhcpc: broadcasting discover
+udhcpc: broadcasting select for 192.168.2.13, server 192.168.2.2
+udhcpc: lease of 192.168.2.13 obtained from 192.168.2.2, lease time 43200
+mv: can't rename '/etc/resolv.conf.21': Resource busy
 Contenedores listos.
-
 == [6/6] Desplegando VMs en Server 2 (uno por VLAN, con DHCP) ==
+[create_vm] La imagen base 'cirros-0.5.1-x86_64-disk.img' ya existe, no se descarga.
+[create_vm] Creando imagen diferencial 'vm_vlan100.qcow2'...
+Formatting 'vm_vlan100.qcow2', fmt=qcow2 size=117440512 backing_file=cirros-0.5.1-x86_64-disk.img backing_fmt=qcow2 cluster_size=65536 lazy_refcounts=off refcount_bits=16
+[create_vm] Creando interfaz TAP 'tap_vm_vlan100'...
+[create_vm] Levantando VM 'vm_vlan100' (VNC :1, MAC 52:54:00:5d:0c:1d)...
+qemu-system-x86_64: warning: host doesn't support requested feature: CPUID.80000001H:ECX.svm [bit 2]
+[create_vm] Conectando 'tap_vm_vlan100' a 'br-int' (VLAN 100)...
 [create_vm] VM 'vm_vlan100' creada: imagen=vm_vlan100.qcow2, tap=tap_vm_vlan100, vnc=5901, mac=52:54:00:5d:0c:1d
+[create_vm] La imagen base 'cirros-0.5.1-x86_64-disk.img' ya existe, no se descarga.
+[create_vm] Creando imagen diferencial 'vm_vlan200.qcow2'...
+Formatting 'vm_vlan200.qcow2', fmt=qcow2 size=117440512 backing_file=cirros-0.5.1-x86_64-disk.img backing_fmt=qcow2 cluster_size=65536 lazy_refcounts=off refcount_bits=16
+[create_vm] Creando interfaz TAP 'tap_vm_vlan200'...
+[create_vm] Levantando VM 'vm_vlan200' (VNC :2, MAC 52:54:00:dd:72:1c)...
+qemu-system-x86_64: warning: host doesn't support requested feature: CPUID.80000001H:ECX.svm [bit 2]
+[create_vm] Conectando 'tap_vm_vlan200' a 'br-int' (VLAN 200)...
 [create_vm] VM 'vm_vlan200' creada: imagen=vm_vlan200.qcow2, tap=tap_vm_vlan200, vnc=5902, mac=52:54:00:dd:72:1c
-
 == Actividad 1 desplegada correctamente ==
-
-
-=== VALIDACION DE CONECTIVIDAD (Server 1, contenedores) ===
-
-$ sudo docker exec container_vlan100 ping -c2 192.168.0.1
+=== ping gateway VLAN100 (192.168.0.1) desde container_vlan100 ===
 PING 192.168.0.1 (192.168.0.1): 56 data bytes
-64 bytes from 192.168.0.1: seq=0 ttl=64 time=4.021 ms
-64 bytes from 192.168.0.1: seq=1 ttl=64 time=0.625 ms
+64 bytes from 192.168.0.1: seq=0 ttl=64 time=5.510 ms
+64 bytes from 192.168.0.1: seq=1 ttl=64 time=0.755 ms
+64 bytes from 192.168.0.1: seq=2 ttl=64 time=0.669 ms
+64 bytes from 192.168.0.1: seq=3 ttl=64 time=0.756 ms
+
 --- 192.168.0.1 ping statistics ---
-2 packets transmitted, 2 packets received, 0% packet loss
+4 packets transmitted, 4 packets received, 0% packet loss
+round-trip min/avg/max = 0.669/1.922/5.510 ms
 
-$ sudo docker exec container_vlan100 ping -c2 8.8.8.8
+=== ping Internet (8.8.8.8) desde container_vlan100 ===
 PING 8.8.8.8 (8.8.8.8): 56 data bytes
-64 bytes from 8.8.8.8: seq=0 ttl=107 time=40.943 ms
-64 bytes from 8.8.8.8: seq=1 ttl=107 time=40.315 ms
+64 bytes from 8.8.8.8: seq=0 ttl=110 time=37.286 ms
+64 bytes from 8.8.8.8: seq=1 ttl=110 time=35.449 ms
+64 bytes from 8.8.8.8: seq=2 ttl=110 time=35.215 ms
+64 bytes from 8.8.8.8: seq=3 ttl=110 time=35.114 ms
+
 --- 8.8.8.8 ping statistics ---
-2 packets transmitted, 2 packets received, 0% packet loss
+4 packets transmitted, 4 packets received, 0% packet loss
+round-trip min/avg/max = 35.114/35.766/37.286 ms
 
-$ sudo docker exec container_vlan100 ping -c2 192.168.2.12
-PING 192.168.2.12 (192.168.2.12): 56 data bytes
-64 bytes from 192.168.2.12: seq=0 ttl=63 time=6.003 ms
-64 bytes from 192.168.2.12: seq=1 ttl=63 time=0.846 ms
---- 192.168.2.12 ping statistics ---
-2 packets transmitted, 2 packets received, 0% packet loss
+=== ping cruzado VLAN100 -> VLAN200 (192.168.2.13) ===
+PING 192.168.2.13 (192.168.2.13): 56 data bytes
+64 bytes from 192.168.2.13: seq=0 ttl=63 time=5.618 ms
+64 bytes from 192.168.2.13: seq=1 ttl=63 time=1.290 ms
+64 bytes from 192.168.2.13: seq=2 ttl=63 time=1.148 ms
+64 bytes from 192.168.2.13: seq=3 ttl=63 time=1.091 ms
 
-$ sudo docker exec container_vlan200 ping -c2 192.168.2.1
+--- 192.168.2.13 ping statistics ---
+4 packets transmitted, 4 packets received, 0% packet loss
+round-trip min/avg/max = 1.091/2.286/5.618 ms
+
+=== ping gateway VLAN200 (192.168.2.1) desde container_vlan200 ===
 PING 192.168.2.1 (192.168.2.1): 56 data bytes
-64 bytes from 192.168.2.1: seq=0 ttl=64 time=0.642 ms
-64 bytes from 192.168.2.1: seq=1 ttl=64 time=0.660 ms
+64 bytes from 192.168.2.1: seq=0 ttl=64 time=1.768 ms
+64 bytes from 192.168.2.1: seq=1 ttl=64 time=0.743 ms
+64 bytes from 192.168.2.1: seq=2 ttl=64 time=0.751 ms
+64 bytes from 192.168.2.1: seq=3 ttl=64 time=0.723 ms
+
 --- 192.168.2.1 ping statistics ---
-2 packets transmitted, 2 packets received, 0% packet loss
+4 packets transmitted, 4 packets received, 0% packet loss
+round-trip min/avg/max = 0.723/0.996/1.768 ms
 
-$ sudo docker exec container_vlan200 ping -c2 8.8.8.8
+=== ping Internet (8.8.8.8) desde container_vlan200 ===
 PING 8.8.8.8 (8.8.8.8): 56 data bytes
-64 bytes from 8.8.8.8: seq=0 ttl=107 time=40.071 ms
-64 bytes from 8.8.8.8: seq=1 ttl=107 time=40.273 ms
---- 8.8.8.8 ping statistics ---
-2 packets transmitted, 2 packets received, 0% packet loss
+64 bytes from 8.8.8.8: seq=0 ttl=110 time=35.322 ms
+64 bytes from 8.8.8.8: seq=1 ttl=110 time=35.307 ms
+64 bytes from 8.8.8.8: seq=2 ttl=110 time=34.992 ms
+64 bytes from 8.8.8.8: seq=3 ttl=110 time=35.362 ms
 
-RESULTADO: gateway OK, Internet OK y ruteo cruzado VLAN100<->VLAN200 OK
-para ambas VLANs. Actividad 1 validada end-to-end.
+--- 8.8.8.8 ping statistics ---
+4 packets transmitted, 4 packets received, 0% packet loss
+round-trip min/avg/max = 34.992/35.245/35.362 ms

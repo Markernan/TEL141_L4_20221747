@@ -1,13 +1,16 @@
-=== EJECUCION DE ./deploy_activity3.sh (desde Server 4) ===
-$ ssh ubuntu@10.20.11.215 -p 5804
-ubuntu@server4:~/scripts$ ./deploy_activity3.sh
-
 == [1/5] Inicializando master (Server 3) y workers (Server 1, Server 2) ==
 [init_master] Creando bridge OVS 'br-int'...
+[init_master] Conectando 'ens4' a 'br-int'...
+[init_master] Activando net.ipv4.ip_forward...
+[init_master] Configurando politica por defecto de FORWARD en DROP...
+[init_master] Agregando regla de retorno ESTABLISHED,RELATED en FORWARD...
 [init_master] Nodo master inicializado correctamente.
+[init_worker] Creando bridge OVS 'br-int'...
+[init_worker] Conectando 'ens4' a 'br-int'...
 [init_worker] Nodo worker inicializado correctamente.
+[init_worker] Creando bridge OVS 'br-int'...
+[init_worker] Conectando 'ens4' a 'br-int'...
 [init_worker] Nodo worker inicializado correctamente.
-
 == [2/5] Creando VLAN 100 y VLAN 200 con DHCP en Server 3 (sin Internet, sin ruteo) ==
 [create_network_vlan] Creando gateway 'gw_vlan100' (VLAN 100, IP 192.168.0.1/24)...
 [create_network_vlan] Creando namespace DHCP 'ns-dhcp-vlan100' (IP 192.168.0.2/24)...
@@ -17,42 +20,60 @@ ubuntu@server4:~/scripts$ ./deploy_activity3.sh
 [create_network_vlan] Creando namespace DHCP 'ns-dhcp-vlan200' (IP 192.168.2.2/24)...
 [create_network_vlan] Levantando dnsmasq en 'ns-dhcp-vlan200' (rango 192.168.2.11-192.168.2.15)...
 [create_network_vlan] Red VLAN 200 (192.168.2.0/24) creada correctamente.
-
 == [3/5] (Intencional) NO se llama internet_to_network.sh ni routing_networks.sh ==
-
 == [4/5] Desplegando contenedores en Server 1 (con DHCP) ==
-udhcpc: lease of 192.168.0.12 obtained from 192.168.0.2, lease time 43200
-udhcpc: lease of 192.168.2.11 obtained from 192.168.2.2, lease time 43200
+d4f87ba95135e3dbb0a8c23a0c4313128474701badf71761032fb051c4d6bc53
+udhcpc: started, v1.37.0
+udhcpc: broadcasting discover
+udhcpc: broadcasting discover
+udhcpc: broadcasting select for 192.168.0.11, server 192.168.0.2
+udhcpc: lease of 192.168.0.11 obtained from 192.168.0.2, lease time 43200
+mv: can't rename '/etc/resolv.conf.22': Resource busy
+a9db197f3934be024296e2708ffdcf88d98ecc2ee74220434d27b5bca903d322
+udhcpc: started, v1.37.0
+udhcpc: broadcasting discover
+udhcpc: broadcasting discover
+udhcpc: broadcasting select for 192.168.2.15, server 192.168.2.2
+udhcpc: lease of 192.168.2.15 obtained from 192.168.2.2, lease time 43200
+mv: can't rename '/etc/resolv.conf.22': Resource busy
 Contenedores listos.
-
 == [5/5] Desplegando VMs en Server 2 (con DHCP) ==
+[create_vm] La imagen base 'cirros-0.5.1-x86_64-disk.img' ya existe, no se descarga.
+[create_vm] Creando imagen diferencial 'vm_vlan100.qcow2'...
+Formatting 'vm_vlan100.qcow2', fmt=qcow2 size=117440512 backing_file=cirros-0.5.1-x86_64-disk.img backing_fmt=qcow2 cluster_size=65536 lazy_refcounts=off refcount_bits=16
+[create_vm] Creando interfaz TAP 'tap_vm_vlan100'...
+[create_vm] Levantando VM 'vm_vlan100' (VNC :1, MAC 52:54:00:5d:0c:1d)...
+qemu-system-x86_64: warning: host doesn't support requested feature: CPUID.80000001H:ECX.svm [bit 2]
+[create_vm] Conectando 'tap_vm_vlan100' a 'br-int' (VLAN 100)...
 [create_vm] VM 'vm_vlan100' creada: imagen=vm_vlan100.qcow2, tap=tap_vm_vlan100, vnc=5901, mac=52:54:00:5d:0c:1d
+[create_vm] La imagen base 'cirros-0.5.1-x86_64-disk.img' ya existe, no se descarga.
+[create_vm] Creando imagen diferencial 'vm_vlan200.qcow2'...
+Formatting 'vm_vlan200.qcow2', fmt=qcow2 size=117440512 backing_file=cirros-0.5.1-x86_64-disk.img backing_fmt=qcow2 cluster_size=65536 lazy_refcounts=off refcount_bits=16
+[create_vm] Creando interfaz TAP 'tap_vm_vlan200'...
+[create_vm] Levantando VM 'vm_vlan200' (VNC :2, MAC 52:54:00:dd:72:1c)...
+qemu-system-x86_64: warning: host doesn't support requested feature: CPUID.80000001H:ECX.svm [bit 2]
+[create_vm] Conectando 'tap_vm_vlan200' a 'br-int' (VLAN 200)...
 [create_vm] VM 'vm_vlan200' creada: imagen=vm_vlan200.qcow2, tap=tap_vm_vlan200, vnc=5902, mac=52:54:00:dd:72:1c
-
 == Actividad 3 desplegada correctamente (redes aisladas, sin Internet ni ruteo) ==
-
-
-=== VALIDACION DE AISLAMIENTO (Server 1, container_vlan100) ===
-
-$ sudo docker exec container_vlan100 ping -c2 192.168.0.1
+=== ping gateway VLAN100 (192.168.0.1) - debe funcionar ===
 PING 192.168.0.1 (192.168.0.1): 56 data bytes
-64 bytes from 192.168.0.1: seq=0 ttl=64 time=4.482 ms
-64 bytes from 192.168.0.1: seq=1 ttl=64 time=0.702 ms
+64 bytes from 192.168.0.1: seq=0 ttl=64 time=5.230 ms
+64 bytes from 192.168.0.1: seq=1 ttl=64 time=0.669 ms
+64 bytes from 192.168.0.1: seq=2 ttl=64 time=0.594 ms
+64 bytes from 192.168.0.1: seq=3 ttl=64 time=0.623 ms
+
 --- 192.168.0.1 ping statistics ---
-2 packets transmitted, 2 packets received, 0% packet loss
-(gateway alcanzable, esperado)
+4 packets transmitted, 4 packets received, 0% packet loss
+round-trip min/avg/max = 0.594/1.779/5.230 ms
 
-$ sudo docker exec container_vlan100 ping -c2 -W2 8.8.8.8
+=== ping Internet (8.8.8.8) desde VLAN100 - debe FALLAR ===
 PING 8.8.8.8 (8.8.8.8): 56 data bytes
+
 --- 8.8.8.8 ping statistics ---
-2 packets transmitted, 0 packets received, 100% packet loss
-(sin salida a Internet, esperado)
+4 packets transmitted, 0 packets received, 100% packet loss
 
-$ sudo docker exec container_vlan100 ping -c2 -W2 192.168.2.11
-PING 192.168.2.11 (192.168.2.11): 56 data bytes
---- 192.168.2.11 ping statistics ---
-2 packets transmitted, 0 packets received, 100% packet loss
-(sin ruteo entre VLANs, esperado - redes aisladas entre si)
+=== ping cruzado VLAN100 -> VLAN200 (192.168.2.15) - debe FALLAR (redes aisladas entre si) ===
+PING 192.168.2.15 (192.168.2.15): 56 data bytes
 
-RESULTADO: aislamiento correcto. Gateway alcanzable, Internet bloqueado,
-comunicacion entre VLAN100 y VLAN200 bloqueada. Actividad 3 validada end-to-end.
+--- 192.168.2.15 ping statistics ---
+4 packets transmitted, 0 packets received, 100% packet loss

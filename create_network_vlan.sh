@@ -101,6 +101,14 @@ if [ "$DHCP_ENABLED" = "true" ]; then
         sudo ip netns exec "$NS" ip link set dev "$DHCP_PORT" up
         sudo ip netns exec "$NS" ip link set dev lo up
 
+        # Archivo de leases dedicado por VLAN: dnsmasq usa por defecto
+        # /var/lib/misc/dnsmasq.leases, que vive en el filesystem compartido
+        # (los network namespaces no aislan el disco), asi que si no se
+        # dedica un archivo por VLAN, leases de corridas anteriores se
+        # acumulan ahi y pueden agotar el rango de direcciones disponibles.
+        LEASE_FILE="/tmp/dnsmasq-vlan${VLAN_ID}.leases"
+        sudo rm -f "$LEASE_FILE"
+
         echo "[create_network_vlan] Levantando dnsmasq en '$NS' (rango ${DHCP_RANGE_START}-${DHCP_RANGE_END})..."
         sudo ip netns exec "$NS" dnsmasq \
             --interface="$DHCP_PORT" \
@@ -108,6 +116,7 @@ if [ "$DHCP_ENABLED" = "true" ]; then
             --except-interface=lo \
             --dhcp-range="${DHCP_RANGE_START},${DHCP_RANGE_END},${NETMASK},12h" \
             --dhcp-option=3,"$GW_IP" \
+            --dhcp-leasefile="$LEASE_FILE" \
             --no-resolv --no-hosts
     fi
 else
