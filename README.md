@@ -28,18 +28,16 @@ ssh usuario@ip_nodo 'bash -s' < script.sh "param1" "param2" ...
 ## Ejemplo de uso end-to-end
 
 ```bash
-# En el nodo master (rol router, ej. Server 3)
+# En el nodo master (rol router, Server 3)
 ssh ubuntu@server3 'bash -s' ens4 < init_master.sh
 ssh ubuntu@server3 'bash -s' 100 192.168.0.0/24 false < create_network_vlan.sh
 ssh ubuntu@server3 'bash -s' 200 192.168.2.0/24 true 192.168.2.11 192.168.2.15 < create_network_vlan.sh
 ssh ubuntu@server3 'bash -s' 100 192.168.0.0/24 < internet_to_network.sh
 ssh ubuntu@server3 'bash -s' 100 200 < routing_networks.sh
 
-# En un nodo worker (ej. Server 1)
+# En un nodo worker ( Server 1)
 ssh ubuntu@server1 'bash -s' ens4 < init_worker.sh
 ssh ubuntu@server1 'bash -s' vm1 br-int 100 5901 < create_vm.sh
 ```
 
 
-# TEL141_L4_20221747
-# TEL141_L4_20221747
